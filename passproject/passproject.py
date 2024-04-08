@@ -11,8 +11,8 @@ class State(rx.State):
     show: bool = True
     passwords = {}
     
-    def create_pass(self):
-        self.passwords[self.site] = int(hashf.sha512(self.site)) + int(hashf.sha512(self.name) + int(hashf.sha512(self.masterpass)))
+    def create_pass(self) -> dict[str, ]:
+        self.passwords[self.site] = hashf.sha512(self.site.encode()).hexdigest()[:4] + hashf.sha512(self.name.encode()).hexdigest()[:4] + hashf.sha512(self.masterpass.encode()).hexdigest()[:4]
 
 def index():
     return rx.hstack(
@@ -20,7 +20,7 @@ def index():
             rx.text("ㅤㅤ"),
             rx.badge(
                 "Password Generator", 
-                variant="subtle", 
+                variant="soft", 
                 color_scheme="blue",
                 bg="royalblue",
                 color="white",
@@ -57,7 +57,7 @@ def index():
             ),
             rx.heading(
                 State.passwords[State.site],
-                size='xl',
+                size='5',
                 color='goldenrod',
             ),
         ),

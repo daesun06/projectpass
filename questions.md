@@ -1,0 +1,2 @@
+Dont know how to setup reflex on my desktop. Did the things that the instructions said. No use. Just starting the same demo app they have.
+So i can't start my programm on this desktop meaning i dont know how it looks and works.
