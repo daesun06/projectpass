@@ -64,19 +64,12 @@ def index():
                     ),
                 ),
                 rx.text("ㅤㅤㅤㅤㅤㅤㅤㅤㅤ"),
-                
-                rx.box(
-                    rx.heading(
-                        State.passwords[State.site],
-                        size='8', weight="bold", align="center",
-                        color='green',
-                    ),
-                    background_color="green",
-                    border_radius="6px",
-                    width="80%",
-                    margin="16px",
-                    padding="16px",
+                rx.heading(
+                    State.passwords[State.site],
+                    size='8', weight="bold", align="center",
+                    color='green',
                 ),
+                
             ),
         ),
         rx.box("", height="50vh", bg="bg"),
