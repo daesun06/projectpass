@@ -13,8 +13,8 @@ class State(rx.State):
     content = []
     
     def create_pass(self) -> dict[str, ]:
-        self.passwords[self.site] = hashf.sha512(self.site.encode()).hexdigest()[:4] + hashf.sha512(self.name.encode()).hexdigest()[:4] + hashf.sha512(self.masterpass.encode()).hexdigest()[:4]
-        
+        nonce = hashf.sha512(self.site.encode()).hexdigest()[:4] + hashf.sha512(self.name.encode()).hexdigest()[:4] + hashf.sha512(self.masterpass.encode()).hexdigest()[:4]
+        self.passwords[self.site] = hashf.sha512(nonce.encode()).hexdigest()[:16].replace("0", "@").replace("e", "$").replace("1", "!")
 
 def index():
     return rx.center(
