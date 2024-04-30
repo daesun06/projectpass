@@ -1,6 +1,7 @@
 import reflex as rx
 import hashlib as hashf
 import json
+import jsonpickle
 
 bg = "gray"
 n=0
@@ -12,16 +13,22 @@ class State(rx.State):
     show: bool = True
     passwords = {}
     content = []
+    dialog_opened: bool
     
     data_raw: str = rx.LocalStorage("{}", sync=True)
     data: dict[str, list[str]] = {}
     
     def _save_settings(self):
         print(self.data)
-        self.data_raw = json.dumps(self.data)
+        self.data_raw = jsonpickle.encode(self.data)
 
     def load_settings(self):
-        self.data = json.load(self.data_raw)
+        print("I am about to print")
+        print(self.data_raw)
+        self.data = json.loads(self.data_raw)
+        del self.data['py/object']
+    
+        print(self.data)
 
     def add_record(self, name: str, website: str):
         if name in self.data:
@@ -42,13 +49,20 @@ class State(rx.State):
         self._save_settings()
         
     
-    def create_pass(self) -> dict[str, ]:
+    def create_pass(self) -> None:
         # part 1 
         nonce = hashf.sha512(self.website.encode()).hexdigest()[:4] + hashf.sha512(self.name.encode()).hexdigest()[:4] + hashf.sha512(self.masterpass.encode()).hexdigest()[:4]
         self.passwords[self.website] = hashf.sha512(nonce.encode()).hexdigest()[:16].replace("0", "@").replace("e", "$").replace("1", "!")
         
         # part 2 - save it -_____-
         self.add_record(self.name, self.website)
+        
+    def dialog_switch(self):
+        self.dialog_opened = not self.dialog_opened
+        
+    def generate_row(item: str):
+        
+        
 
 @rx.page(route="/", title="Home")
 def index():
@@ -209,7 +223,7 @@ def index():
         ),
     ),
 
-@rx.page(route="/passwords", title="Paswwords")
+@rx.page(route="/passwords", title="Passwords", on_load=State.load_settings)
 def passwords():
     return rx.tablet_and_desktop(
         rx.flex(
@@ -254,7 +268,9 @@ def passwords():
                     height="7vh", trim="both", width="100%",
                 ),
                 rx.box("", height="20vh", bg="bg"),
+                
                 rx.hstack(
+                    
                     rx.text("ㅤ" * 50 , align="center"),
                     rx.table.root(
                         rx.table.header(
@@ -264,15 +280,36 @@ def passwords():
                                 rx.table.column_header_cell("Show")
                             ),
                         ),
+                        
                         rx.table.body(
+                            # rx.foreach(State.data, colored_box),
                             rx.table.row(
                                 rx.table.cell(State.name),
                                 rx.table.cell(State.website),
-                                rx.table.cell(rx.button("Show", color_scheme="green"))
-                            )
-                        )
-                    )    
-                )    
+                                rx.table.cell(rx.button("Show", on_click=State.dialog_switch ,color_scheme="green")),
+                            ),
+                        ),
+                    ),
+                    rx.alert_dialog.root(
+                        rx.alert_dialog.content(
+                            rx.alert_dialog.title("My password"),
+                            rx.alert_dialog.description(
+                                "Regenerate your password securely",
+                            ),
+                            rx.flex(
+                                
+                                rx.alert_dialog.cancel(
+                                    rx.button("Close", on_click=State.dialog_switch),
+                                ),  
+                                rx.alert_dialog.cancel(
+                                    rx.button("Generate"),
+                                ),
+                                spacing="3",
+                            ),
+                        ),
+                        open=State.dialog_opened,
+                    ),
+                ),
             ),
         ),
     ),
