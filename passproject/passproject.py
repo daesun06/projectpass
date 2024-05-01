@@ -4,7 +4,6 @@ import json
 import jsonpickle
 
 bg = "gray"
-n=0
 
 class State(rx.State):
     name: str
@@ -27,7 +26,8 @@ class State(rx.State):
         print(self.data_raw)
         self.data = json.loads(self.data_raw)
         del self.data['py/object']
-    
+        if self.website in self.passwords:
+            self.passwords.popitem()
         print(self.data)
 
     def add_record(self, name: str, website: str):
@@ -48,6 +48,7 @@ class State(rx.State):
         self.data[name] = [site for site in self.data[name] if site != website]
         self._save_settings()
         
+
     
     def create_pass(self) -> None:
         # part 1 
@@ -56,13 +57,28 @@ class State(rx.State):
         
         # part 2 - save it -_____-
         self.add_record(self.name, self.website)
+        self.masterpass=""
         
     def dialog_switch(self):
         self.dialog_opened = not self.dialog_opened
         
     def generate_row(item: str):
+        return 
+    
+    def count_names(self):
+        return self.data.keys()
+cnames=State.count_names
+
+def table_box():
+    return rx.table.row(
+        rx.table.cell(State.data),
+        rx.table.cell(rx.button("Show", on_click=State.dialog_switch ,color_scheme="green")),
+    ),
         
-        
+def names():
+    return rx.menu.content(
+        rx.menu.item(State.name),
+    ),        
 
 @rx.page(route="/", title="Home")
 def index():
@@ -100,18 +116,18 @@ def index():
                                 ),
                             ),
                             rx.menu.content(
-                                rx.menu.item(rx.button("Main"), href="http://loaclhost:3000/index/", color_scheme="green"),
+                                rx.menu.item(rx.link("Main"), on_click=rx.redirect("/"), color_scheme="green"),
                                 rx.menu.separator(),
-                                rx.menu.item(rx.button("Table"), href="http://localhost:3000/passwords/", color_scheme="green"),
+                                rx.menu.item(rx.link("Table"), on_click=rx.redirect("/passwords/"), color_scheme="green"),
                             ),
                         ),
                         bg="black",
                         color="white",
                         height="7vh", trim="both", width="100%"
                     ),
-                    rx.box("", height="30vh", bg=""),
+                    rx.box("", height="20vh", bg=""),
                     rx.hstack(
-                        rx.text("ㅤ" * 50),
+                        rx.text("ㅤ" * 47),
                         rx.flex(
                             rx.text("Enter your name:", align="center", color_scheme="green"),
                             rx.hstack(
@@ -133,13 +149,12 @@ def index():
                                 State.passwords[State.website],
                                 size='8', weight="bold", align="center",
                                 color='green',
-                            ), align="center", direction="column",
+                            ), align="center", direction="column", spacing="2",
                         ), 
                         rx.text("ㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤㅤ"),
                     ),     
                 ), 
             ),
-            rx.box("", height="50vh", bg="bg"),
             center_content=True,
             bg="bg",
             color="gray",
@@ -178,7 +193,7 @@ def index():
                         rx.text("ㅤㅤㅤㅤㅤㅤㅤ"),
                         bg="black",
                         color="white",
-                        height="7vh", trim="both"
+                        height="7vh", trim="both",
                     ),
                     rx.box("", height="15vh", bg=""),
                     rx.hstack(
@@ -200,7 +215,7 @@ def index():
                                         "Create",
                                         color_scheme="green",
                                         on_click=State.create_pass,
-                                        size="4"
+                                        size="4",
                                     ), 
                                     rx.heading(
                                         State.passwords[State.website],
@@ -258,9 +273,9 @@ def passwords():
                             ),
                         ),
                         rx.menu.content(
-                            rx.menu.item(rx.link("Main"), href="http://loaclhost:3000/index/", color_scheme="green"),
+                            rx.menu.item(rx.link("Main"), on_click=rx.redirect("/"), color_scheme="green"),
                             rx.menu.separator(),
-                            rx.menu.item(rx.link("Table"), href="http://localhost:3000/passwords/", color_scheme="green"),
+                            rx.menu.item(rx.link("Table"), on_click=rx.redirect("/passwords/"), color_scheme="green"),
                         ),
                     ),
                     bg="black",
@@ -268,46 +283,64 @@ def passwords():
                     height="7vh", trim="both", width="100%",
                 ),
                 rx.box("", height="20vh", bg="bg"),
-                
                 rx.hstack(
-                    
                     rx.text("ㅤ" * 50 , align="center"),
-                    rx.table.root(
-                        rx.table.header(
-                            rx.table.row(
-                                rx.table.column_header_cell("Name"),
-                                rx.table.column_header_cell("Website"),
-                                rx.table.column_header_cell("Show")
-                            ),
+                    rx.flex(
+                        rx.menu.root(
+                            rx.menu.trigger(rx.button("Pick a user", color_scheme="green")),
+                            # rx.foreach(cnames, names), # foreach is commented, bcs it's very grumpy and always crashes, so idk how to do it else
+                            rx.menu.content(
+                                rx.menu.item(State.name), #did it temporarily just so it works, don't know how to puy only the key
+                            ), 
                         ),
-                        
-                        rx.table.body(
-                            # rx.foreach(State.data, colored_box),
-                            rx.table.row(
-                                rx.table.cell(State.name),
-                                rx.table.cell(State.website),
-                                rx.table.cell(rx.button("Show", on_click=State.dialog_switch ,color_scheme="green")),
-                            ),
-                        ),
-                    ),
-                    rx.alert_dialog.root(
-                        rx.alert_dialog.content(
-                            rx.alert_dialog.title("My password"),
-                            rx.alert_dialog.description(
-                                "Regenerate your password securely",
-                            ),
-                            rx.flex(
-                                
-                                rx.alert_dialog.cancel(
-                                    rx.button("Close", on_click=State.dialog_switch),
-                                ),  
-                                rx.alert_dialog.cancel(
-                                    rx.button("Generate"),
+                        rx.hstack( 
+                            rx.table.root(
+                                rx.table.header(
+                                    rx.table.row(
+                                        rx.table.column_header_cell("Website"),
+                                        rx.table.column_header_cell("Show")
+                                    ),
                                 ),
-                                spacing="3",
+                                
+                                rx.table.body(
+                                    # rx.foreach(State.data, table_box), # foreach is commented, bcs it's very grumpy and always crashes, so idk how to do it else
+                                    rx.table.row(
+                                        rx.table.cell(State.website), # also only temporary, have an idea how to do it, but can't make happen
+                                        rx.table.cell(rx.button("Show", on_click=State.dialog_switch ,color_scheme="green")),
+                                    ),
+                                ),
                             ),
-                        ),
-                        open=State.dialog_opened,
+                            rx.alert_dialog.root(
+                                rx.alert_dialog.content(
+                                    rx.alert_dialog.title("To show your password, regenerate it"),
+                                    rx.alert_dialog.description(
+                                        rx.vstack(
+                                            rx.text("Enter your master password: "),
+                                            rx.input(on_change=State.set_masterpass, value=State.masterpass, type="password", color_scheme="green"),
+                                            rx.heading(
+                                                State.passwords[State.website],
+                                                size='8', weight="bold", align="center",
+                                                color='green',
+                                            ),
+                                        ),
+                                    ),  
+                                    rx.flex(
+                                        
+                                        rx.alert_dialog.cancel(
+                                            rx.button("Close", on_click=State.dialog_switch, color_scheme="red"),
+                                        ),  
+                                        rx.alert_dialog.action(
+                                            rx.button("Generate", on_click=State.create_pass, color_scheme="green"),
+                                        ),
+                                        rx.alert_dialog.action(
+                                            rx.button("Copy", on_click=rx.set_clipboard(State.passwords[State.website])), 
+                                        ),
+                                        spacing="3",
+                                    ),
+                                ),
+                                open=State.dialog_opened,
+                            ),
+                        ), direction="column", align="center",
                     ),
                 ),
             ),
