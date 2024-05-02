@@ -13,6 +13,8 @@ class State(rx.State):
     passwords = {}
     content = []
     dialog_opened: bool
+    currentuser: str
+    current_passwords: list[str]
     
     data_raw: str = rx.LocalStorage("{}", sync=True)
     data: dict[str, list[str]] = {}
@@ -67,18 +69,23 @@ class State(rx.State):
     
     def count_names(self):
         return self.data.keys()
+    
+    def setcurrentuser(self, given_user: tuple[str, list[str]]):
+        self.currentuser = given_user[0]
+        self.current_passwords = list(given_user[1])
+    
+    
+    
 cnames=State.count_names
 
-def table_box():
+def table_box(current_password: str):
     return rx.table.row(
-        rx.table.cell(State.data),
+        rx.table.cell(current_password),
         rx.table.cell(rx.button("Show", on_click=State.dialog_switch ,color_scheme="green")),
     ),
         
-def names():
-    return rx.menu.content(
-        rx.menu.item(State.name),
-    ),        
+def names(cname: str):
+    return rx.menu.item(rx.button(cname, on_click=State.setcurrentuser(cname)))
 
 @rx.page(route="/", title="Home")
 def index():
@@ -288,10 +295,12 @@ def passwords():
                     rx.flex(
                         rx.menu.root(
                             rx.menu.trigger(rx.button("Pick a user", color_scheme="green")),
-                            # rx.foreach(cnames, names), # foreach is commented, bcs it's very grumpy and always crashes, so idk how to do it else
                             rx.menu.content(
-                                rx.menu.item(State.name), #did it temporarily just so it works, don't know how to puy only the key
-                            ), 
+                                rx.foreach(State.data, names), # foreach is commented, bcs it's very grumpy and always crashes, so idk how to do it else
+                            )
+                            # rx.menu.content(
+                            #     rx.menu.item(State.name), # did it temporarily just so it works, don't know how to puy only the key
+                            # ), 
                         ),
                         rx.hstack( 
                             rx.table.root(
@@ -303,11 +312,11 @@ def passwords():
                                 ),
                                 
                                 rx.table.body(
-                                    # rx.foreach(State.data, table_box), # foreach is commented, bcs it's very grumpy and always crashes, so idk how to do it else
-                                    rx.table.row(
-                                        rx.table.cell(State.website), # also only temporary, have an idea how to do it, but can't make happen
-                                        rx.table.cell(rx.button("Show", on_click=State.dialog_switch ,color_scheme="green")),
-                                    ),
+                                    rx.foreach(State.current_passwords, table_box), # foreach is commented, bcs it's very grumpy and always crashes, so idk how to do it else
+                                    # rx.table.row(
+                                    #     rx.table.cell(State.website), # also only temporary, have an idea how to do it, but can't make happen
+                                    #     rx.table.cell(rx.button("Show", on_click=State.dialog_switch ,color_scheme="green")),
+                                    # ),
                                 ),
                             ),
                             rx.alert_dialog.root(
