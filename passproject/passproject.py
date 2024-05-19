@@ -81,8 +81,8 @@ cnames=State.count_names
 def table_box(current_password: str):
     return rx.table.row(
         rx.table.cell(current_password),
-        rx.table.cell(rx.button("Show", on_click=State.dialog_switch ,color_scheme="green")),
-    ),
+        rx.table.cell(rx.button("Show", on_click=State.dialog_switch, color_scheme="green")),
+    )
         
 def names(cname: str):
     return rx.menu.item(rx.button(cname, on_click=State.setcurrentuser(cname)))

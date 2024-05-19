@@ -1,6 +1,6 @@
 *.db
 *.py[cod]
+.DS_Store
+.venv
 .web
 __pycache__/
-.venv
-.DS_Store
